@@ -1,9 +1,9 @@
-import { Inter } from "next/font/google";
 import {AppProvider} from "@/app/components/AppContext"
+import { Roboto } from "next/font/google";
 import Header from "./components/layout/Header";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Roboto({ subsets: ["latin"], weight:['400','500','700'] });
 
 export const metadata = {
   title: "Create Next App",
