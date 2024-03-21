@@ -4,7 +4,8 @@ import mongoose from "mongoose";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google"
-const handler = NextAuth({
+
+export const authOptions = {
   secret: process.env.SECRET,
   providers: [
     GoogleProvider({
@@ -38,6 +39,7 @@ const handler = NextAuth({
       },
     }),
   ],
-});
+}
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
