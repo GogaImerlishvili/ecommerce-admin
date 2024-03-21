@@ -5,7 +5,13 @@ import Link from "next/link";
 const Header = () => {
   const session = useSession();
   console.log(session);
-  const status = session.status;
+  const status = session?.status;
+  console.log(status);
+  const userData = session.data?.user;
+  let userName = userData?.name || userData?.email || "User";
+  if (userName && userName.includes("@")) {
+    userName = userName.split("@")[0];
+  }
   return (
     <>
       <header className="flex items-center justify-between">
@@ -20,13 +26,18 @@ const Header = () => {
         </nav>
         <nav className="flex items-center gap-4 text-gray-500 font-semibold">
           {status === "authenticated" && (
-            <button
-            onClick={() => signOut()}
-              href={"/register"}
-              className="bg-red-600 text-white rounded-full px-8 py-2"
-            >
-              Logout
-            </button>
+            <>
+              <Link href={"/profile"} className="whitespace-nowrap">
+                Hello,{userName}
+              </Link>
+              <button
+                onClick={() => signOut()}
+                href={"/register"}
+                className="bg-red-600 text-white rounded-full px-8 py-2"
+              >
+                Logout
+              </button>
+            </>
           )}
           {status === "unauthenticated" && (
             <>
