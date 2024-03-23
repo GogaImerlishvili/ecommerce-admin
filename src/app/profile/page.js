@@ -2,14 +2,19 @@
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { set } from "mongoose";
+import toast from "react-hot-toast";
 
 export default function ProfilePage() {
   const session = useSession();
-  const { status } = session;
+  console.log(session);
   const [userName, setUserName] = useState("User");
-  const [saved, setSaved] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [image, setImage] = useState("");
+  const [phone, setPhone] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+  const { status } = session;
 
   useEffect(() => {
     let initialUserName =
@@ -17,28 +22,49 @@ export default function ProfilePage() {
     if (initialUserName.includes("@")) {
       initialUserName = initialUserName.split("@")[0];
     }
+
     if (status === "authenticated") {
       setUserName(initialUserName);
+      setImage(session?.data?.user?.image);
+      fetch("/api/profile").then((response) => {
+        response.json().then((data) => {
+          setPhone(data.phone);
+          setStreetAddress(data.streetAddress);
+          setPostalCode(data.postalCode);
+          setCity(data.city);
+          setCountry(data.country);
+          console.log(data);
+        });
+      });
     }
   }, [session, status]);
 
   async function handleProfileInfoUpdate(ev) {
     ev.preventDefault();
-    setSaved(false);
-    setIsSaving(true);
-    const response = await fetch("/api/profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: userName,
-      }),
+    const savingPromise = new Promise(async (resolve, reject) => {
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: userName,
+          image: image,
+          streetAddress,
+          phone,
+          postalCode,
+          city,
+          country,
+        }),
+      });
+      if (response.ok) resolve();
+      else reject();
     });
-    setIsSaving(false);
-    if (response.ok) {
-      setSaved(true);
-    }
+    await toast.promise(savingPromise, {
+      loading: "Saving...",
+      success: "Profile Saved!",
+      error: "Error!",
+    });
   }
 
   async function handleFileChange(ev) {
@@ -46,10 +72,18 @@ export default function ProfilePage() {
     if (files?.length === 1) {
       const data = new FormData();
       data.set("file", files[0]);
-      await fetch("/api/upload", {
+      toast("Uploading image...");
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: data,
       });
+      if (response.ok) {
+        toast.success("Upload complete!");
+      } else {
+        toast.error("Upload failed!");
+      }
+      const link = await response.json();
+      setImage(link);
     }
   }
 
@@ -61,41 +95,32 @@ export default function ProfilePage() {
     return <div>You are not authenticated</div>;
   }
 
-  const userImage = session.data?.user?.image;
   return (
     <section className="mt-8">
       <h1 className="text-center text-red-600 text-4xl mb-4 mt-4">Profile</h1>
       <div className="max-w-md mx-auto">
-        {saved && (
-          <h2 className="text-center bg-green-100 p-4 rounded-lg border border-green-200">
-            Profile Saved!
-          </h2>
-        )}
-        {isSaving && (
-          <h2 className="text-center bg-yellow-100 p-4 rounded-lg border border-yellow-200">
-            Saving...
-          </h2>
-        )}
-      </div>
-      <div className="max-w-md mx-auto">
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-4">
           <div>
             <div className="p-2 rounded-lg relative">
-              <div className="relative h-full w-full">
+              <div className="relative h-full w-full max-w-[200px]">
                 <Image
                   className="rounded-lg mx-auto mb-1 shadow-lg"
-                  src={"/istockphoto-1300845620-612x612.jpg"}
+                  src={image || "/istockphoto-1300845620-612x612.jpg"}
                   alt="avatar"
-                  width={150}
-                  height={150}
+                  width={200}
+                  height={200}
                 />
+
                 <label>
                   <input
                     type="file"
                     className="hidden"
                     onChange={handleFileChange}
                   />
-                  <span className="block border border-gray-300 rounded-lg p-4 text-center cursor-pointer">
+                  <span
+                    className="block border border-gray-300 rounded-lg p-1  
+                  text-center cursor-pointer"
+                  >
                     Edit
                   </span>
                 </label>
@@ -103,17 +128,59 @@ export default function ProfilePage() {
             </div>
           </div>
           <form className="grow" onSubmit={handleProfileInfoUpdate}>
+            <label>First and last name</label>
             <input
               type="text"
               value={userName}
               placeholder="First and Last name"
               onChange={(ev) => setUserName(ev.target.value)}
             />
+            <label>Email</label>
             <input
-              type="text"
-              id="email"
+              type="email"
               value={session.data.user.email}
               disabled={true}
+            />
+            <label>Tel</label>
+            <input
+              type="tel"
+              placeholder="Phone number"
+              value={phone}
+              onChange={(ev) => setPhone(ev.target.value)}
+            />
+            <label>Street address</label>
+            <input
+              type="text"
+              placeholder="Street address"
+              value={streetAddress}
+              onChange={(ev) => setStreetAddress(ev.target.value)}
+            />
+            <div className="flex gap-2">
+              <div>
+                <label>Postal Code</label>
+                <input
+                  type="text"
+                  placeholder="Postal code"
+                  value={postalCode}
+                  onChange={(ev) => setPostalCode(ev.target.value)}
+                />
+              </div>
+              <div>
+                <label>City</label>
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={city}
+                  onChange={(ev) => setCity(ev.target.value)}
+                />
+              </div>
+            </div>
+            <label>Country</label>
+            <input
+              type="text"
+              placeholder="Country"
+              value={country}
+              onChange={(ev) => setCountry(ev.target.value)}
             />
             <button type="submit">Save</button>
           </form>
