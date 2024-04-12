@@ -1,7 +1,20 @@
+"use client"
+import { useEffect,useState } from "react";
 import Image from "next/image";
 import MenuItems from "@/app/components/menu/MenuItems";
 import SectionHeaders from "@/app/components/layout/SectionHeaders";
+
 export default function HomeMenu() {
+  const [bestSellers,setBestSellers] = useState([])
+  useEffect(() => {
+    fetch("/api/menu-items").then(res => {
+      res.json().then(menuItems => {
+        // const sellers = menuItems.slice(-3)
+        // console.log(sellers)
+        setBestSellers(menuItems.slice(-3))
+      })
+    })
+  },[])
   return (
     <section className="">
       <div className="absolute left-0 right-0 w-full justify-start">
@@ -13,15 +26,12 @@ export default function HomeMenu() {
         </div>
       </div>
       <div className="text-center mb-4">
-     <SectionHeaders subHeader={'check out'} mainHeader={'Menu'} />
+     <SectionHeaders subHeader={'check out'} mainHeader={'Our Best Sellers'} />
       </div>
       <div className="grid grid-cols-3 gap-4">
-      <MenuItems />
-      <MenuItems />
-      <MenuItems /> 
-      <MenuItems />
-      <MenuItems />
-      <MenuItems /> 
+      {bestSellers?.length > 0 && bestSellers.map(item => (
+        <MenuItems {...item} />
+      ))}
       </div>
     </section>
   );

@@ -9,7 +9,7 @@ export default function Home() {
       <HomeMenu />
       <section className="text-center my-16">
         <SectionHeaders subHeader={"Our story"} mainHeader={"About us"} />
-        <div className="text-gray-500 max-w-md mx-auto mt-4 flex flex-col gap-4">
+        <div className="text-gray-500 max-w-md mx-auto mt-4 flex flex-col gap-4" id="about">
           <p>
             Lorem Ipsum is simply dummy text of the printing and typesetting
             industry. Lorem Ipsum has been the industry's standard dummy text
@@ -33,7 +33,7 @@ export default function Home() {
           mainHeader={"Contact us"}
         />
         <div className="mt-8">
-          <a href="tel:+995514824584" className="text-4xl underline text-gray-500">
+          <a href="tel:+995514824584" className="text-4xl underline text-gray-500" id="contact">
             +995 514 82 45 84
           </a>
         </div>
